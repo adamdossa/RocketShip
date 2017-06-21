@@ -1,0 +1,7 @@
+.info-layout-transparent {
+  background: url('./images/fullmoon.jpg') center / cover;
+}
+.info-layout-transparent .mdl-layout__header,
+.info-layout-transparent .mdl-layout__drawer-button {
+  color: white;
+}
