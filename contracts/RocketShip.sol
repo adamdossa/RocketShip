@@ -6,24 +6,23 @@ contract RocketShip {
 
   using SafeMath for uint256;
 
-  event RocketProvisioned(address _owner, uint256 _liftOffBlock, uint256 _cargo);
-  event TicketPurchased(address _ticketAddress, uint256 _ticketPrice, uint256 _liftOffBlock, uint256 _cargo);
+  event RocketProvisioned(address _owner, uint256 _liftOffBlock);
+  event TicketPurchased(address _ticketAddress, uint256 _ticketPrice, uint256 _liftOffBlock);
   event LiftOff(address _ticketAddress, uint256 _cargo);
   event LaunchPadClosed(address _owner, uint256 _refund);
 
-  address public owner;
   uint256 public blocksPerTicket = 4;
-  uint256 public provisionPercentage = 10; //as a percentage
+  uint256 public provisionPercentage = 10;
+
+  address public owner;
   uint256 public liftOffBlock;
-  address public ticketAddress;
-  uint256 public ticketPrice;
-  uint256 public cargo;
-  uint256 public provision;
+  address public currentTicketAddress;
+  uint256 public nextTicketPrice;
   bool public launched;
   bool public closed;
 
   modifier onlyTicketAddress() {
-    require(msg.sender == ticketAddress);
+    require(msg.sender == currentTicketAddress);
     _;
   }
 
@@ -46,14 +45,14 @@ contract RocketShip {
 
     //If msg.value <= 1 then the ticket cost would be 0
     require(msg.value > 1);
+    require(provisionPercentage < 100);
 
     owner = msg.sender;
     liftOffBlock = getBlockNumber().add(blocksPerTicket);
-    ticketAddress = msg.sender;
-    ticketPrice = calcTicketPrice();
-    cargo = calcCargo();
+    currentTicketAddress = msg.sender;
+    nextTicketPrice = calcTicketPrice();
 
-    RocketProvisioned(msg.sender, liftOffBlock, cargo);
+    RocketProvisioned(msg.sender, liftOffBlock);
 
   }
 
@@ -63,25 +62,28 @@ contract RocketShip {
 
   function buyTicket() payable onlyBeforeLiftOff public {
 
-    require(msg.value == ticketPrice);
+    require(msg.value == nextTicketPrice);
 
-    ticketAddress = msg.sender;
+    currentTicketAddress = msg.sender;
     liftOffBlock = getBlockNumber().add(blocksPerTicket);
-    ticketPrice = calcTicketPrice();
-    cargo = calcCargo();
+    nextTicketPrice = calcTicketPrice();
 
-    TicketPurchased(msg.sender, msg.value, liftOffBlock, cargo);
+    TicketPurchased(msg.sender, msg.value, liftOffBlock);
 
   }
 
   function calcCargo() constant public returns (uint256) {
-    require(provisionPercentage < 100);
     return (this.balance).mul(percent(100 - provisionPercentage)).div(percent(100));
+  }
+
+  function calcNextCargo() constant public returns (uint256) {
+    return (this.balance.add(nextTicketPrice)).mul(percent(100 - provisionPercentage)).div(percent(100));
   }
 
   function engageThrusters() onlyTicketAddress onlyAfterLiftOff public {
     require(!launched);
     launched = true;
+    uint256 cargo = calcCargo();
     LiftOff(msg.sender, cargo);
     msg.sender.transfer(cargo);
   }
@@ -91,7 +93,7 @@ contract RocketShip {
     closed = true;
     uint256 refund = this.balance;
     if (!launched) {
-      refund = refund.sub(cargo);
+      refund = refund.sub(calcCargo());
     }
     LaunchPadClosed(msg.sender, refund);
     msg.sender.transfer(refund);
