@@ -18,6 +18,7 @@ contract RocketShip {
   address public ticketAddress;
   uint256 public ticketPrice;
   uint256 public cargo;
+  uint256 public provision;
   bool public launched;
   bool public closed;
 
@@ -47,7 +48,7 @@ contract RocketShip {
     require(msg.value > 1);
 
     owner = msg.sender;
-    liftOffBlock = getBlockNumber() + blocksPerTicket;
+    liftOffBlock = getBlockNumber().add(blocksPerTicket);
     ticketAddress = msg.sender;
     ticketPrice = calcTicketPrice();
     cargo = calcCargo();
@@ -65,7 +66,7 @@ contract RocketShip {
     require(msg.value == ticketPrice);
 
     ticketAddress = msg.sender;
-    liftOffBlock = getBlockNumber() + blocksPerTicket;
+    liftOffBlock = getBlockNumber().add(blocksPerTicket);
     ticketPrice = calcTicketPrice();
     cargo = calcCargo();
 
@@ -90,7 +91,7 @@ contract RocketShip {
     closed = true;
     uint256 refund = this.balance;
     if (!launched) {
-      refund = refund - cargo;
+      refund = refund.sub(cargo);
     }
     LaunchPadClosed(msg.sender, refund);
     msg.sender.transfer(refund);

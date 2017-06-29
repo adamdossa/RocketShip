@@ -24,36 +24,6 @@ const initialValue = 1000000000000000;
 const gasPrice = 4e9;
 
 contract('RocketShip', function(accounts) {
-  it("account_two should buy a ticket and increment liftOffBlock by blocksPerTicket", async () => {
-    //Create rocketShip
-    var rocketShip = await RocketShip.new({from: account_one, value: initialValue});
-    //Set current block to just before liftOffBlock
-    var liftOffBlock = await rocketShip.liftOffBlock.call();
-    await rocketShip.setMockedBlockNumber(liftOffBlock.toNumber());
-    //account_two buys a ticket just in time
-    var ticketPrice = await rocketShip.ticketPrice.call();
-    var txId = await rocketShip.buyTicket({from: account_two, value: ticketPrice});
-    var ticketAddress = await rocketShip.ticketAddress.call();
-    assert.equal(ticketAddress, account_two, "account_two should be the ticket holder");
-    var newLiftOffBlock = await rocketShip.liftOffBlock.call();
-    var blocksPerTicket = await rocketShip.blocksPerTicket.call();
-    assert.equal(newLiftOffBlock.toNumber(), liftOffBlock.add(blocksPerTicket).toNumber(), "liftOffBlock should be moved forward by blocksPerTicket");
-  });
-  it("account_two should fail to buy a ticket after liftOffBlock", async () => {
-    //Create rocketShip
-    var rocketShip = await RocketShip.new({from: account_one, value: initialValue});
-    //Set current block to just after liftOffBlock
-    var liftOffBlock = await rocketShip.liftOffBlock.call();
-    await rocketShip.setMockedBlockNumber(liftOffBlock.toNumber() + 1);
-    //account_two buys a ticket too late
-    var ticketPrice = await rocketShip.ticketPrice.call();
-    await assertFail(async () => {
-      await rocketShip.buyTicket({from: account_two, value: ticketPrice});
-    })
-    //account_one should still be the ticket holder
-    var ticketAddress = await rocketShip.ticketAddress.call();
-    assert.equal(ticketAddress, account_one, "account_one should still be the ticket holder");
-  });
   it("account_two should buy a ticket, then engageThrusters after liftOffBlock, then account_one closeLaunchPad", async () => {
     //Create rocketShip
     var rocketShip = await RocketShip.new({from: account_one, value: initialValue});
@@ -83,5 +53,35 @@ contract('RocketShip', function(accounts) {
     //check final rocketShip balance is 0
     var finalBalance = web3.eth.getBalance(rocketShip.address);
     assert.equal(finalBalance.toNumber(), 0, "Final rocketShip balance should be 0");
+  });
+  it("account_two should buy a ticket and increment liftOffBlock by blocksPerTicket", async () => {
+    //Create rocketShip
+    var rocketShip = await RocketShip.new({from: account_one, value: initialValue});
+    //Set current block to just before liftOffBlock
+    var liftOffBlock = await rocketShip.liftOffBlock.call();
+    await rocketShip.setMockedBlockNumber(liftOffBlock.toNumber());
+    //account_two buys a ticket just in time
+    var ticketPrice = await rocketShip.ticketPrice.call();
+    var txId = await rocketShip.buyTicket({from: account_two, value: ticketPrice});
+    var ticketAddress = await rocketShip.ticketAddress.call();
+    assert.equal(ticketAddress, account_two, "account_two should be the ticket holder");
+    var newLiftOffBlock = await rocketShip.liftOffBlock.call();
+    var blocksPerTicket = await rocketShip.blocksPerTicket.call();
+    assert.equal(newLiftOffBlock.toNumber(), liftOffBlock.add(blocksPerTicket).toNumber(), "liftOffBlock should be moved forward by blocksPerTicket");
+  });
+  it("account_two should fail to buy a ticket after liftOffBlock", async () => {
+    //Create rocketShip
+    var rocketShip = await RocketShip.new({from: account_one, value: initialValue});
+    //Set current block to just after liftOffBlock
+    var liftOffBlock = await rocketShip.liftOffBlock.call();
+    await rocketShip.setMockedBlockNumber(liftOffBlock.toNumber() + 1);
+    //account_two buys a ticket too late
+    var ticketPrice = await rocketShip.ticketPrice.call();
+    await assertFail(async () => {
+      await rocketShip.buyTicket({from: account_two, value: ticketPrice});
+    })
+    //account_one should still be the ticket holder
+    var ticketAddress = await rocketShip.ticketAddress.call();
+    assert.equal(ticketAddress, account_one, "account_one should still be the ticket holder");
   });
 });
