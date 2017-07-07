@@ -56,7 +56,7 @@ contract RocketShip {
 
   }
 
-  function calcTicketPrice() internal returns (uint256) {
+  function calcTicketPrice() constant internal returns (uint256) {
     return (this.balance).div(2);
   }
 
@@ -84,27 +84,27 @@ contract RocketShip {
     require(!launched);
     launched = true;
     uint256 cargo = calcCargo();
-    LiftOff(msg.sender, cargo);
-    msg.sender.transfer(cargo);
+    LiftOff(currentTicketAddress, cargo);
+    currentTicketAddress.transfer(cargo);
   }
 
-  function closeLaunchPad() public {
+  function closeLaunchPad() onlyOwner onlyAfterLiftOff public {
     require(!closed);
     closed = true;
     uint256 refund = this.balance;
     if (!launched) {
       refund = refund.sub(calcCargo());
     }
-    LaunchPadClosed(msg.sender, refund);
-    msg.sender.transfer(refund);
+    LaunchPadClosed(owner, refund);
+    owner.transfer(refund);
   }
 
-  function percent(uint256 p) internal returns (uint256) {
+  function percent(uint256 p) constant internal returns (uint256) {
     return p.mul(10**16);
   }
 
   /// @notice This function is overridden by the test Mocks.
-  function getBlockNumber() internal constant returns (uint256) {
+  function getBlockNumber() constant internal returns (uint256) {
     return block.number;
   }
 
