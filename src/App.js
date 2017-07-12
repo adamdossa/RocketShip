@@ -64,21 +64,17 @@ class App extends Component {
 
   render() {
     return (
-      <div className="info-layout-transparent mdl-layout mdl-js-layout">
+      <div className="header-layout-transparent mdl-layout mdl-js-layout">
         <header className="mdl-layout__header mdl-layout__header--transparent">
-          <div className="mdl-layout-icon"></div>
           <div className="mdl-layout__header-row">
-            <span className="mdl-layout-title"><h1>Rocket Ship Raider</h1></span>
+            <span className="mdl-layout-title"><h1>Rocketship Raider</h1></span>
             <div className="mdl-layout-spacer"></div>
+            <nav class="mdl-navigation">
+              <a class="mdl-navigation__link" href="">GitHub</a>
+              <a class="mdl-navigation__link" href="">Info</a>
+            </nav>
           </div>
         </header>
-        <div className="mdl-layout__drawer">
-          <nav className="mdl-navigation">    <MissionControl/>
-            <a className="mdl-navigation__link" href="">Rules</a>
-            <a className="mdl-navigation__link" href="">Buy Ticket</a>
-            <a className="mdl-navigation__link" href="">About</a>
-          </nav>
-        </div>
         <main className="mdl-layout__content">
           <div className="mdl-grid">
             <MissionControl web3={this.state.web3}/>
